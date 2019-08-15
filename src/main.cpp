@@ -12,7 +12,6 @@
 TFT_eSPI tft = TFT_eSPI();       // Invoke custom library
 ModbusMaster node;
 
-//
 bool state = true;
 
 void preTransmission()
