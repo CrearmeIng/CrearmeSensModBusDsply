@@ -7,12 +7,10 @@
 #define CTRL_PIN PIN_D0
 #define BAUDRATE 115200
 
-// Hola Mundo
 #define DEBUG
 
 TFT_eSPI tft = TFT_eSPI();       // Invoke custom library
 ModbusMaster node;
-
 
 bool state = true;
 
