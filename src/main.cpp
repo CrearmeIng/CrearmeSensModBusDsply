@@ -10,7 +10,7 @@
 
 #define DEBUG
 
-TFT_eSPI tft = TFT_eSPI();       // Invoke custom library
+TFT_eSPI tft = TFT_eSPI();
 ModbusMaster node1;
 ModbusMaster node2;
 
