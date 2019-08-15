@@ -1,17 +1,18 @@
 #include <Arduino.h>
-#include <TFT_eSPI.h> // Hardware-specific library
+#include <TFT_eSPI.h>
 #include <SPI.h>
 #include <ModbusMaster.h>
 
-#define SLAVE_ID 0x01
+#define SLAVE1_ID 0x01
+#define SLAVE2_ID 0x02
 #define CTRL_PIN PIN_D0
 #define BAUDRATE 115200
 
-// Hola Mundo
 #define DEBUG
 
 TFT_eSPI tft = TFT_eSPI();       // Invoke custom library
-ModbusMaster node;
+ModbusMaster node1;
+ModbusMaster node2;
 
 
 bool state = true;
@@ -30,9 +31,12 @@ void setup() {
   // Modbus setup
   pinMode(CTRL_PIN, OUTPUT);
   Serial.begin(BAUDRATE);
-  node.begin(SLAVE_ID, Serial);
-  node.preTransmission(preTransmission);
-  node.postTransmission(postTransmission);
+  node1.begin(SLAVE1_ID, Serial);
+  node1.preTransmission(preTransmission);
+  node1.postTransmission(postTransmission);
+  node2.begin(SLAVE2_ID, Serial);
+  node2.preTransmission(preTransmission);
+  node2.postTransmission(postTransmission);
   // Setup the TFT display
   tft.init();
   tft.setRotation(1);
@@ -46,21 +50,29 @@ void setup() {
 
 void loop() {
   uint8_t result;
-  /*result = node.writeSingleCoil(3, false);
+  /*result = node1.writeSingleCoil(3, false);
   delay(50);
   Serial.print("Resultado: "); Serial.println(result,HEX);
   delay(500);
-  result = node.writeSingleCoil(3, true);
+  result = node1.writeSingleCoil(3, true);
   delay(50);
   Serial.print("Resultado: "); Serial.println(result,HEX);
   delay(500);*/
-  result = node.readInputRegisters(0,1);
-  if (result == node.ku8MBSuccess) {
-    uint16_t sensor = node.getResponseBuffer(0);
+  result = node1.readInputRegisters(0,1);
+  if (result == node1.ku8MBSuccess) {
+    uint16_t sensor = node1.getResponseBuffer(0);
     //tft.setTextColor(TFT_WHITE,TFT_BLACK);
     tft.setTextSize(5);
-    tft.fillRect(100,120,150,40,TFT_BLACK);
-    tft.drawNumber(sensor, 100, 120);
+    tft.fillRect(10,120,150,40,TFT_BLACK);
+    tft.drawNumber(sensor, 10, 120);
+  }
+  result = node2.readInputRegisters(0,1);
+  if (result == node2.ku8MBSuccess) {
+    uint16_t sensor = node2.getResponseBuffer(0);
+    //tft.setTextColor(TFT_WHITE,TFT_BLACK);
+    tft.setTextSize(5);
+    tft.fillRect(200,120,150,40,TFT_BLACK);
+    tft.drawNumber(sensor, 200, 120);
   }
   delay(200);
 }
