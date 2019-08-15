@@ -14,7 +14,6 @@ TFT_eSPI tft = TFT_eSPI();
 ModbusMaster node1;
 ModbusMaster node2;
 
-
 bool state = true;
 
 void preTransmission()
