@@ -38,13 +38,13 @@ float getSensVal(ModbusMaster node, int32_t poX, int32_t poY){
       delay(50);
       return sensor;
     }
-  } else {
+  }/* else {
     tft.setTextSize(2);
     tft.fillRect(poX,poY,150,40,TFT_BLACK);
     tft.drawString("No Disp", poX, poY);
     delay(50);
     return NULL;
-  }
+  }*/
 }
 
 void setup() {
