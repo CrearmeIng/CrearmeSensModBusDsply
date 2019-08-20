@@ -26,6 +26,18 @@ void postTransmission()
   digitalWrite(CTRL_PIN, 0);
 }
 
+void getSensVal(ModbusMaster node){
+  uint16_t result = node.readInputRegisters(0,1);
+  if (result == node.ku8MBSuccess) {
+    uint16_t sensor = node.getResponseBuffer(0);
+    //tft.setTextColor(TFT_WHITE,TFT_BLACK);
+    tft.setTextSize(5);
+    tft.fillRect(200,120,150,40,TFT_BLACK);
+    tft.drawNumber(sensor, 200, 120);
+    delay(50);
+  }
+}
+
 void setup() {
   // Modbus setup
   pinMode(CTRL_PIN, OUTPUT);
@@ -48,7 +60,7 @@ void setup() {
 
 
 void loop() {
-  uint8_t result;
+  //uint8_t result;
   /*result = node1.writeSingleCoil(3, false);
   delay(50);
   Serial.print("Resultado: "); Serial.println(result,HEX);
@@ -57,21 +69,7 @@ void loop() {
   delay(50);
   Serial.print("Resultado: "); Serial.println(result,HEX);
   delay(500);*/
-  result = node1.readInputRegisters(0,1);
-  if (result == node1.ku8MBSuccess) {
-    uint16_t sensor = node1.getResponseBuffer(0);
-    //tft.setTextColor(TFT_WHITE,TFT_BLACK);
-    tft.setTextSize(5);
-    tft.fillRect(10,120,150,40,TFT_BLACK);
-    tft.drawNumber(sensor, 10, 120);
-  }
-  result = node2.readInputRegisters(0,1);
-  if (result == node2.ku8MBSuccess) {
-    uint16_t sensor = node2.getResponseBuffer(0);
-    //tft.setTextColor(TFT_WHITE,TFT_BLACK);
-    tft.setTextSize(5);
-    tft.fillRect(200,120,150,40,TFT_BLACK);
-    tft.drawNumber(sensor, 200, 120);
-  }
+  getSensVal(node1);
+  getSensVal(node2);
   delay(200);
 }
