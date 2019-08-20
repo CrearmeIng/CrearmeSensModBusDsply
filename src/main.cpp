@@ -26,15 +26,24 @@ void postTransmission()
   digitalWrite(CTRL_PIN, 0);
 }
 
-void getSensVal(ModbusMaster node){
-  uint16_t result = node.readInputRegisters(0,1);
-  if (result == node.ku8MBSuccess) {
-    uint16_t sensor = node.getResponseBuffer(0);
-    //tft.setTextColor(TFT_WHITE,TFT_BLACK);
-    tft.setTextSize(5);
-    tft.fillRect(200,120,150,40,TFT_BLACK);
-    tft.drawNumber(sensor, 200, 120);
+float getSensVal(ModbusMaster node, int32_t poX, int32_t poY){
+  if (node.available()) {
+    uint16_t result = node.readInputRegisters(0,1);
+    if (result == node.ku8MBSuccess) {
+      uint16_t sensor = node.getResponseBuffer(0);
+      //tft.setTextColor(TFT_WHITE,TFT_BLACK);
+      tft.setTextSize(5);
+      tft.fillRect(poX,poY,150,40,TFT_BLACK);
+      tft.drawNumber(sensor, poX, poY);
+      delay(50);
+      return sensor;
+    }
+  } else {
+    tft.setTextSize(2);
+    tft.fillRect(poX,poY,150,40,TFT_BLACK);
+    tft.drawString("No Disp", poX, poY);
     delay(50);
+    return NULL;
   }
 }
 
@@ -69,7 +78,7 @@ void loop() {
   delay(50);
   Serial.print("Resultado: "); Serial.println(result,HEX);
   delay(500);*/
-  getSensVal(node1);
-  getSensVal(node2);
+  getSensVal(node1, 10, 120);
+  getSensVal(node2, 200, 120);
   delay(200);
 }
