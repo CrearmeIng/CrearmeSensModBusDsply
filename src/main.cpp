@@ -91,7 +91,8 @@ void loop() {
   delay(50);
   Serial.print("Resultado: "); Serial.println(result,HEX);
   delay(500);*/
-  getSensVal(node1, 10, 120);
+  //getSensVal(node1, 10, 120);
+  getSensVal(node1, 80, 100);
   //getSensVal(node2, 200, 120);
   delay(200);
 }
