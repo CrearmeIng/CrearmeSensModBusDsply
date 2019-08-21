@@ -8,13 +8,18 @@
 #define CTRL_PIN PIN_D0
 #define BAUDRATE 115200
 
-#define DEBUG
+//#define DEBUG
 
 TFT_eSPI tft = TFT_eSPI();
 ModbusMaster node1;
 ModbusMaster node2;
 
 bool state = true;
+
+union unFlt {
+  float flt;
+  int16_t int16[2];
+} ufl;
 
 void preTransmission()
 {
@@ -27,13 +32,17 @@ void postTransmission()
 }
 
 float getSensVal(ModbusMaster node, int32_t poX, int32_t poY){
-  uint16_t result = node.readInputRegisters(0,1);
+  uint16_t result = node.readInputRegisters(0,2);
   if (result == node.ku8MBSuccess) {
-    uint16_t sensor = node.getResponseBuffer(0);
+    ufl.int16[0] = node.getResponseBuffer(0);
+    ufl.int16[1] = node.getResponseBuffer(1);
+    float sensor = ufl.flt;
+    //float sensor = node.getResponseBuffer(0);
     //tft.setTextColor(TFT_WHITE,TFT_BLACK);
-    tft.setTextSize(5);
+    tft.setTextSize(4);
     tft.fillRect(poX,poY,150,40,TFT_BLACK);
-    tft.drawNumber(sensor, poX, poY);
+    tft.drawFloat(sensor, 3, poX, poY);
+    //tft.drawNumber(sensor, poX, poY);
     delay(50);
     return sensor;
   } else {
@@ -52,9 +61,9 @@ void setup() {
   node1.begin(SLAVE1_ID, Serial);
   node1.preTransmission(preTransmission);
   node1.postTransmission(postTransmission);
-  node2.begin(SLAVE2_ID, Serial);
-  node2.preTransmission(preTransmission);
-  node2.postTransmission(postTransmission);
+  //node2.begin(SLAVE2_ID, Serial);
+  //node2.preTransmission(preTransmission);
+  //node2.postTransmission(postTransmission);
   // Setup the TFT display
   tft.init();
   tft.setRotation(1);
@@ -77,6 +86,6 @@ void loop() {
   Serial.print("Resultado: "); Serial.println(result,HEX);
   delay(500);*/
   getSensVal(node1, 10, 120);
-  getSensVal(node2, 200, 120);
+  //getSensVal(node2, 200, 120);
   delay(200);
 }
