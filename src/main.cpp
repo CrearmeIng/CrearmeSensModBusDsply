@@ -36,19 +36,25 @@ float getSensVal(ModbusMaster node, int32_t poX, int32_t poY){
   if (result == node.ku8MBSuccess) {
     ufl.int16[0] = node.getResponseBuffer(0);
     ufl.int16[1] = node.getResponseBuffer(1);
-    float sensor = ufl.flt;
-    //float sensor = node.getResponseBuffer(0);
+    float valkPa = ufl.flt;                 // Value in kPa
+    float valinh2o = valkPa * 4.01865;                   // value converted from kPa to inh2o
     //tft.setTextColor(TFT_WHITE,TFT_BLACK);
+    tft.setTextSize(1);
+    tft.drawString("kPa",poX,poY+10);
+    tft.drawString("in",poX+3,poY+38);
+    tft.drawString("h2o",poX,poY+48);
     tft.setTextSize(4);
-    tft.fillRect(poX,poY,150,40,TFT_BLACK);
-    tft.drawFloat(sensor, 3, poX, poY);
+    tft.fillRect(poX+25, poY, 116, 55, TFT_BLACK);
+    tft.drawFloat(valkPa, 2, poX+25, poY);
+    tft.setTextSize(2);
+    tft.drawFloat(valinh2o, 3, poX+25, poY+40);
     //tft.drawNumber(sensor, poX, poY);
     delay(50);
-    return sensor;
+    return valkPa;
   } else {
     tft.setTextSize(2);
-    tft.fillRect(poX,poY,150,40,TFT_BLACK);
-    tft.drawString("No Disp", poX, poY + 10);
+    tft.fillRect(poX+25, poY, 116, 55, TFT_BLACK);
+    tft.drawString("No Disp", poX+25, poY + 25);
     delay(50);
     return NULL;
   }
