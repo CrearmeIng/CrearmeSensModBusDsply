@@ -45,14 +45,14 @@ void showSensVal(float valkPa, int32_t poX, int32_t poY){
     float valinh2o = valkPa * 4.01865;
     //tft.setTextColor(TFT_WHITE,TFT_BLACK);
     tft.setTextSize(1);
-    tft.drawString("kPa",poX,poY+10);
-    tft.drawString("in",poX+3,poY+38);
-    tft.drawString("h2o",poX,poY+48);
+    tft.drawString("in",poX+3,poY+5);
+    tft.drawString("h2o",poX,poY+15);
+    tft.drawString("kPa",poX,poY+43);
     tft.setTextSize(4);
     tft.fillRect(poX+25, poY, 116, 55, TFT_BLACK);
-    tft.drawFloat(valkPa, 2, poX+25, poY);
+    tft.drawFloat(valinh2o, 2, poX+25, poY);
     tft.setTextSize(2);
-    tft.drawFloat(valinh2o, 3, poX+25, poY+40);
+    tft.drawFloat(valkPa, 3, poX+25, poY+40);
     //tft.drawNumber(sensor, poX, poY);
     delay(50);
   }
@@ -100,9 +100,8 @@ void setup() {
 void loop() {
   currTm = millis();
   if (abs(currTm - lstTm) >= smplTm){
-    // showSensVal(node1, 10, 120);
-    showSensVal(getSensValKpa(node1,0), 80, 100);
-    //showSensVal(node2, 200, 120);
+    showSensVal(getSensValKpa(node1,0), 10, 100);
+    showSensVal(getSensValKpa(node1,1), 170, 100);
     lstTm = currTm;
   }
 }
