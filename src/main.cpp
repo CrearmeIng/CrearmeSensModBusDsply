@@ -41,6 +41,7 @@ void postTransmission()
 void showSensVal(float valkPa, int32_t poX, int32_t poY){
   if (valkPa == NULL) {
     tft.setFreeFont(FSS12);
+    
     tft.fillRect(poX+25, poY, 116, 55, TFT_BLACK);
     tft.drawString("No Disp", poX+25, poY + 25);
     delay(50);
