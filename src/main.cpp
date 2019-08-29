@@ -2,6 +2,7 @@
 #include <TFT_eSPI.h>
 #include <SPI.h>
 #include <ModbusMaster.h>
+#include "Free_Fonts.h"
 
 #define SLAVE1_ID 0x01
 #define SLAVE2_ID 0x02
@@ -35,25 +36,26 @@ void postTransmission()
   digitalWrite(CTRL_PIN, 0);
 }
 
+
+
 void showSensVal(float valkPa, int32_t poX, int32_t poY){
   if (valkPa == NULL) {
-    tft.setTextSize(2);
+    tft.setFreeFont(FSS12);
     tft.fillRect(poX+25, poY, 116, 55, TFT_BLACK);
     tft.drawString("No Disp", poX+25, poY + 25);
     delay(50);
   } else {
     float valinh2o = valkPa * 4.01865;
     //tft.setTextColor(TFT_WHITE,TFT_BLACK);
-    tft.setTextSize(1);
+    tft.setFreeFont(FF0);
     tft.drawString("in",poX+3,poY+5);
     tft.drawString("h2o",poX,poY+15);
     tft.drawString("kPa",poX,poY+43);
-    tft.setTextSize(4);
+    tft.setFreeFont(FSS24);
     tft.fillRect(poX+25, poY, 116, 55, TFT_BLACK);
     tft.drawFloat(valinh2o, 2, poX+25, poY);
-    tft.setTextSize(2);
+    tft.setFreeFont(FSS9);
     tft.drawFloat(valkPa, 3, poX+25, poY+40);
-    //tft.drawNumber(sensor, poX, poY);
     delay(50);
   }
 }
@@ -91,6 +93,7 @@ void setup() {
   tft.setRotation(1);
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE);
+  tft.setFreeFont(FSS9);
   tft.drawCentreString("Monitoreo de Presion Diferencial",160,0,2);
   tft.drawLine(10,17,310,17,TFT_WHITE);
   tft.fillRoundRect(10,190,70,40,3,TFT_BLUE);
