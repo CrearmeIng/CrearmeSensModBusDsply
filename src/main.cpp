@@ -8,8 +8,7 @@
 #define SLAVE2_ID 0x02
 #define CTRL_PIN PIN_D0
 #define BAUDRATE 115200
-
-#define smplTm    200   //ms
+#define smplTm    500   //ms
 
 //#define DEBUG
 
@@ -25,7 +24,6 @@ union unFlt {
   float flt;
   int16_t int16[2];
 } ufl;
-
 void preTransmission()
 {
   digitalWrite(CTRL_PIN, 1);
@@ -36,16 +34,28 @@ void postTransmission()
   digitalWrite(CTRL_PIN, 0);
 }
 
+float kPa2inh2o(float valkPa){
+  return valkPa * 4.01865;
+}
 
+float inh2o2kPa(float valkin2o){
+  return valkin2o / 4.01865;
+}
 
 void showSensVal(float valkPa, int32_t poX, int32_t poY){
   if (valkPa == NULL) {
+    tft.setTextColor(TFT_RED);
     tft.setFreeFont(FSS12);
     tft.fillRect(poX+25, poY, 116, 55, TFT_BLACK);
     tft.drawString("No Disp", poX+25, poY + 25);
     delay(50);
   } else {
-    float valinh2o = valkPa * 4.01865;
+    if ((valkPa < 0.0) || (valkPa > inh2o2kPa(2.5))){
+      tft.setTextColor(TFT_RED);
+    } else {
+      tft.setTextColor(TFT_WHITE);
+    }
+    float valinh2o = kPa2inh2o(valkPa);
     //tft.setTextColor(TFT_WHITE,TFT_BLACK);
     tft.setFreeFont(FF0);
     tft.drawString("in",poX+3,poY+5);
@@ -97,6 +107,14 @@ void setup() {
   tft.drawCentreString("Monitoreo de Presion Diferencial",160,0,2);
   tft.drawLine(10,17,310,17,TFT_WHITE);
   tft.fillRoundRect(10,190,70,40,3,TFT_BLUE);
+  uint16_t calData[5];
+  tft.calibrateTouch(calData,TFT_BLUE,TFT_CYAN,15);
+  tft.fillRect(30,30,210,30,TFT_BLACK);
+  tft.drawNumber(calData[1], 0,30);
+  tft.drawNumber(calData[2], 50,30);
+  tft.drawNumber(calData[3], 100,30);
+  tft.drawNumber(calData[4], 150,30);
+  tft.drawNumber(calData[5], 200,30);
 }
 
 
@@ -105,6 +123,18 @@ void loop() {
   if (abs(currTm - lstTm) >= smplTm){
     showSensVal(getSensValKpa(node1,0), 10, 100);
     showSensVal(getSensValKpa(node1,1), 170, 100);
+    //---------------------
+    //uint16_t x = 0;
+    //uint16_t y = 0;
+    //tft.getTouch(&x,&y);
+    //tft.fillRect(30,30,100,30,TFT_BLACK);
+    //tft.drawNumber(x, 30,30);
+    //tft.drawNumber(y, 90,30);
+    //tft.drawPixel(x,240-y,TFT_WHITE);
     lstTm = currTm;
   }
+  uint16_t x = 0;
+  uint16_t y = 0;
+  tft.getTouch(&x,&y);
+  tft.drawPixel(x,y,TFT_WHITE);
 }
