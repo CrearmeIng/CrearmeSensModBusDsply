@@ -4,17 +4,19 @@
 #include <ModbusMaster.h>
 #include "Free_Fonts.h"
 
-#define SLAVE1_ID 0x01
-#define SLAVE2_ID 0x02
-#define CTRL_PIN PIN_D0
-#define BAUDRATE 115200
-#define smplTm    500   //ms
+#define SLAVE1_ID   0x01
+#define SLAVE2_ID   0x02
+#define CTRL_PIN    D1
+#define BAUDRATE    115200
+#define smplTm      500   //ms
 
 //#define DEBUG
 
 TFT_eSPI tft = TFT_eSPI();
 ModbusMaster node1;
 ModbusMaster node2;
+TFT_eSPI_Button btnBack;
+TFT_eSPI_Button btnPrev;
 
 bool state = true;
 long lstTm = 0;
@@ -42,12 +44,17 @@ float inh2o2kPa(float valkin2o){
   return valkin2o / 4.01865;
 }
 
-void showSensVal(float valkPa, int32_t poX, int32_t poY){
+void showSensVal(float valkPa, char *title, int32_t poX, int32_t poY){
+  tft.drawRect(poX,poY+7,148,72,TFT_WHITE);
+  tft.setFreeFont(FSS9);
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.drawCentreString(title, poX+74, poY,1);
   if (valkPa == NULL) {
     tft.setTextColor(TFT_RED);
     tft.setFreeFont(FSS12);
-    tft.fillRect(poX+25, poY, 116, 55, TFT_BLACK);
-    tft.drawString("No Disp", poX+25, poY + 25);
+    tft.fillRect(poX+1, poY+17, 146, 58, TFT_BLACK);
+    tft.drawString("No Disp", poX+30, poY + 32);
+    tft.setFreeFont(FSS9);
     delay(50);
   } else {
     if ((valkPa < 0.0) || (valkPa > inh2o2kPa(2.5))){
@@ -58,14 +65,14 @@ void showSensVal(float valkPa, int32_t poX, int32_t poY){
     float valinh2o = kPa2inh2o(valkPa);
     //tft.setTextColor(TFT_WHITE,TFT_BLACK);
     tft.setFreeFont(FF0);
-    tft.drawString("in",poX+3,poY+5);
-    tft.drawString("h2o",poX,poY+15);
-    tft.drawString("kPa",poX,poY+43);
+    tft.drawString("in",poX+10,poY+28);
+    tft.drawString("h2o",poX+6,poY+38);
+    tft.drawString("kPa",poX+6,poY+62);
     tft.setFreeFont(FSS24);
-    tft.fillRect(poX+25, poY, 116, 55, TFT_BLACK);
-    tft.drawFloat(valinh2o, 2, poX+25, poY);
+    tft.fillRect(poX+27, poY+18, 114, 55, TFT_BLACK);
+    tft.drawFloat(valinh2o, 2, poX+27, poY+18);
     tft.setFreeFont(FSS9);
-    tft.drawFloat(valkPa, 3, poX+25, poY+40);
+    tft.drawFloat(valkPa, 3, poX+27, poY+58);
     delay(50);
   }
 }
@@ -88,6 +95,53 @@ float getSensValKpa(ModbusMaster node, uint8_t sensNum){
   }
 }
 
+void screen1(ModbusMaster node, char *title){
+  tft.setFreeFont(FSS9);
+  tft.setTextColor(TFT_WHITE,TFT_BLACK);
+  tft.drawCentreString(title,160,205,1);
+  showSensVal(getSensValKpa(node,0)," Sensor 1  ", 6, 25);
+  showSensVal(getSensValKpa(node,1)," Sensor 2  ", 166, 25);
+  showSensVal(getSensValKpa(node,0)," Sensor 3  ", 6, 110);
+  showSensVal(getSensValKpa(node,1)," Sensor 4  ", 166, 110);
+  //---------------------
+  //uint16_t x = 0;
+  //uint16_t y = 0;
+  //tft.getTouch(&x,&y);
+  //tft.fillRect(30,30,100,30,TFT_BLACK);
+  //tft.drawNumber(x, 30,30);
+  //tft.drawNumber(y, 90,30);
+  //tft.drawPixel(x,240-y,TFT_WHITE);
+  uint16_t x = 0;
+  uint16_t y = 0;
+  tft.getTouch(&x,&y);
+  btnBack.contains(x,240-y);
+  btnPrev.contains(x,240-y);
+  if (btnBack.contains(x, 240-y)) {
+    //Serial.print("Pressing: "); Serial.println(b);
+    btnBack.press(true);  // tell the button it is pressed
+  } else {
+    btnBack.press(false);  // tell the button it is NOT pressed
+  }
+  if (btnBack.justReleased()) {
+    btnBack.drawButton();  // draw normal
+  }
+  if (btnBack.justPressed()) {
+    btnBack.drawButton(true);  // draw invert!
+  }
+  if (btnPrev.contains(x, 240-y)) {
+    //Serial.print("Pressing: "); Serial.println(b);
+    btnPrev.press(true);  // tell the button it is pressed
+  } else {
+    btnPrev.press(false);  // tell the button it is NOT pressed
+  }
+  if (btnPrev.justReleased()) {
+    btnPrev.drawButton();  // draw normal
+  }
+  if (btnPrev.justPressed()) {
+    btnPrev.drawButton(true);  // draw invert!
+  }
+}
+
 void setup() {
   // Modbus setup
   pinMode(CTRL_PIN, OUTPUT);
@@ -104,37 +158,20 @@ void setup() {
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE);
   tft.setFreeFont(FSS9);
-  tft.drawCentreString("Monitoreo de Presion Diferencial",160,0,2);
-  tft.drawLine(10,17,310,17,TFT_WHITE);
-  tft.fillRoundRect(10,190,70,40,3,TFT_BLUE);
-  uint16_t calData[5];
-  tft.calibrateTouch(calData,TFT_BLUE,TFT_CYAN,15);
-  tft.fillRect(30,30,210,30,TFT_BLACK);
-  tft.drawNumber(calData[1], 0,30);
-  tft.drawNumber(calData[2], 50,30);
-  tft.drawNumber(calData[3], 100,30);
-  tft.drawNumber(calData[4], 150,30);
-  tft.drawNumber(calData[5], 200,30);
+  tft.drawCentreString("Monitoreo de Presion Diferencial",160,3,1);
+  tft.drawLine(10,20,310,20,TFT_WHITE);
+  /*uint16_t calData[5];
+  tft.calibrateTouch(calData,TFT_BLUE,TFT_CYAN,15);*/
+  btnBack.initButtonUL(&tft, 5, 195, 70, 40,TFT_WHITE, TFT_BLACK,TFT_WHITE, "<<",1);
+  btnBack.drawButton();
+  btnPrev.initButtonUL(&tft, 245, 195, 70, 40,TFT_WHITE, TFT_BLACK,TFT_WHITE, ">>",1);
+  btnPrev.drawButton();
 }
-
 
 void loop() {
   currTm = millis();
   if (abs(currTm - lstTm) >= smplTm){
-    showSensVal(getSensValKpa(node1,0), 10, 100);
-    showSensVal(getSensValKpa(node1,1), 170, 100);
-    //---------------------
-    //uint16_t x = 0;
-    //uint16_t y = 0;
-    //tft.getTouch(&x,&y);
-    //tft.fillRect(30,30,100,30,TFT_BLACK);
-    //tft.drawNumber(x, 30,30);
-    //tft.drawNumber(y, 90,30);
-    //tft.drawPixel(x,240-y,TFT_WHITE);
+    screen1(node1, "Maquina 1");
     lstTm = currTm;
   }
-  uint16_t x = 0;
-  uint16_t y = 0;
-  tft.getTouch(&x,&y);
-  tft.drawPixel(x,y,TFT_WHITE);
 }
