@@ -142,8 +142,6 @@ void loop() {
   uint16_t x = 0;
   uint16_t y = 0;
   tft.getTouch(&x,&y);
-  btnPrev.contains(x,240-y);
-  btnNext.contains(x,240-y);
   // ------------------------ Prev Button ------------------------
   if (btnPrev.contains(x, 240-y)) {
     btnPrev.press(true);  // tell the button it is pressed
