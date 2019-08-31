@@ -15,8 +15,8 @@
 TFT_eSPI tft = TFT_eSPI();
 ModbusMaster node1;
 ModbusMaster node2;
-TFT_eSPI_Button btnBack;
 TFT_eSPI_Button btnPrev;
+TFT_eSPI_Button btnNext;
 
 bool state = true;
 long lstTm = 0;
@@ -99,47 +99,12 @@ void screen1(ModbusMaster node, char *title){
   tft.setFreeFont(FSS9);
   tft.setTextColor(TFT_WHITE,TFT_BLACK);
   tft.drawCentreString(title,160,205,1);
-  showSensVal(getSensValKpa(node,0)," Sensor 1  ", 6, 25);
+  showSensVal(getSensValKpa(node,0)," Sensor 1  ", 96, 25);
+  showSensVal(getSensValKpa(node,1)," Sensor 2  ", 96, 110);
+  /*showSensVal(getSensValKpa(node,0)," Sensor 1  ", 6, 25);
   showSensVal(getSensValKpa(node,1)," Sensor 2  ", 166, 25);
   showSensVal(getSensValKpa(node,0)," Sensor 3  ", 6, 110);
-  showSensVal(getSensValKpa(node,1)," Sensor 4  ", 166, 110);
-  //---------------------
-  //uint16_t x = 0;
-  //uint16_t y = 0;
-  //tft.getTouch(&x,&y);
-  //tft.fillRect(30,30,100,30,TFT_BLACK);
-  //tft.drawNumber(x, 30,30);
-  //tft.drawNumber(y, 90,30);
-  //tft.drawPixel(x,240-y,TFT_WHITE);
-  uint16_t x = 0;
-  uint16_t y = 0;
-  tft.getTouch(&x,&y);
-  btnBack.contains(x,240-y);
-  btnPrev.contains(x,240-y);
-  if (btnBack.contains(x, 240-y)) {
-    //Serial.print("Pressing: "); Serial.println(b);
-    btnBack.press(true);  // tell the button it is pressed
-  } else {
-    btnBack.press(false);  // tell the button it is NOT pressed
-  }
-  if (btnBack.justReleased()) {
-    btnBack.drawButton();  // draw normal
-  }
-  if (btnBack.justPressed()) {
-    btnBack.drawButton(true);  // draw invert!
-  }
-  if (btnPrev.contains(x, 240-y)) {
-    //Serial.print("Pressing: "); Serial.println(b);
-    btnPrev.press(true);  // tell the button it is pressed
-  } else {
-    btnPrev.press(false);  // tell the button it is NOT pressed
-  }
-  if (btnPrev.justReleased()) {
-    btnPrev.drawButton();  // draw normal
-  }
-  if (btnPrev.justPressed()) {
-    btnPrev.drawButton(true);  // draw invert!
-  }
+  showSensVal(getSensValKpa(node,1)," Sensor 4  ", 166, 110);*/
 }
 
 void setup() {
@@ -162,10 +127,10 @@ void setup() {
   tft.drawLine(10,20,310,20,TFT_WHITE);
   /*uint16_t calData[5];
   tft.calibrateTouch(calData,TFT_BLUE,TFT_CYAN,15);*/
-  btnBack.initButtonUL(&tft, 5, 195, 70, 40,TFT_WHITE, TFT_BLACK,TFT_WHITE, "<<",1);
-  btnBack.drawButton();
-  btnPrev.initButtonUL(&tft, 245, 195, 70, 40,TFT_WHITE, TFT_BLACK,TFT_WHITE, ">>",1);
+  btnPrev.initButtonUL(&tft, 5, 195, 70, 40,TFT_WHITE, TFT_BLACK,TFT_WHITE, "<<",1);
   btnPrev.drawButton();
+  btnNext.initButtonUL(&tft, 245, 195, 70, 40,TFT_WHITE, TFT_BLACK,TFT_WHITE, ">>",1);
+  btnNext.drawButton();
 }
 
 void loop() {
@@ -173,5 +138,35 @@ void loop() {
   if (abs(currTm - lstTm) >= smplTm){
     screen1(node1, "Maquina 1");
     lstTm = currTm;
+  }
+  uint16_t x = 0;
+  uint16_t y = 0;
+  tft.getTouch(&x,&y);
+  btnPrev.contains(x,240-y);
+  btnNext.contains(x,240-y);
+  // ------------------------ Prev Button ------------------------
+  if (btnPrev.contains(x, 240-y)) {
+    btnPrev.press(true);  // tell the button it is pressed
+  } else {
+    btnPrev.press(false);  // tell the button it is NOT pressed
+  }
+  if (btnPrev.justReleased()) {
+    btnPrev.drawButton();  // draw normal
+  }
+  if (btnPrev.justPressed()) {
+    btnPrev.drawButton(true);  // draw invert!
+  }
+  // ------------------------ Next Button ------------------------
+  if (btnNext.contains(x, 240-y)) {
+    //Serial.print("Pressing: "); Serial.println(b);
+    btnNext.press(true);  // tell the button it is pressed
+  } else {
+    btnNext.press(false);  // tell the button it is NOT pressed
+  }
+  if (btnNext.justReleased()) {
+    btnNext.drawButton();  // draw normal
+  }
+  if (btnNext.justPressed()) {
+    btnNext.drawButton(true);  // draw invert!
   }
 }
