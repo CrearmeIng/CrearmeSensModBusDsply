@@ -6,7 +6,8 @@
 
 #define SLAVE1_ID   0x01
 #define SLAVE2_ID   0x02
-#define CTRL_PIN    D1
+//#define CTRL_PIN    5     //D1
+#define CTRL_PIN    27
 #define BAUDRATE    115200
 #define smplTm      500   //ms
 
