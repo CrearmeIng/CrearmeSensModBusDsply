@@ -8,6 +8,7 @@
 #define SLAVE2_ID   0x02
 //#define CTRL_PIN    5     //D1
 #define CTRL_PIN    25
+#define IRQ_PIN     27
 #define BAUDRATE    115200
 #define smplTm      500   //ms
 
@@ -108,38 +109,8 @@ void screen1(ModbusMaster node, char *title){
   showSensVal(getSensValKpa(node,1)," Sensor 4  ", 166, 110);*/
 }
 
-void setup() {
-  // Modbus setup
-  pinMode(CTRL_PIN, OUTPUT);
-  Serial.begin(BAUDRATE);
-  node1.begin(SLAVE1_ID, Serial);
-  node1.preTransmission(preTransmission);
-  node1.postTransmission(postTransmission);
-  //node2.begin(SLAVE2_ID, Serial);
-  //node2.preTransmission(preTransmission);
-  //node2.postTransmission(postTransmission);
-  // Setup the TFT display
-  tft.init();
-  tft.setRotation(1);
-  tft.fillScreen(TFT_BLACK);
-  tft.setTextColor(TFT_WHITE);
-  tft.setFreeFont(FSS9);
-  tft.drawCentreString("Monitoreo de Presion Diferencial",160,3,1);
-  tft.drawLine(10,20,310,20,TFT_WHITE);
-  /*uint16_t calData[5];
-  tft.calibrateTouch(calData,TFT_BLUE,TFT_CYAN,15);*/
-  btnPrev.initButtonUL(&tft, 5, 195, 70, 40,TFT_WHITE, TFT_BLACK,TFT_WHITE, "<<",1);
-  btnPrev.drawButton();
-  btnNext.initButtonUL(&tft, 245, 195, 70, 40,TFT_WHITE, TFT_BLACK,TFT_WHITE, ">>",1);
-  btnNext.drawButton();
-}
-
-void loop() {
-  currTm = millis();
-  if (abs(currTm - lstTm) >= smplTm){
-    screen1(node1, "Maquina 1");
-    lstTm = currTm;
-  }
+void IRAM_ATTR touchISR(){
+  detachInterrupt(digitalPinToInterrupt(IRQ_PIN));
   uint16_t x = 0;
   uint16_t y = 0;
   tft.getTouch(&x,&y);
@@ -168,4 +139,42 @@ void loop() {
   if (btnNext.justPressed()) {
     btnNext.drawButton(true);  // draw invert!
   }
+  attachInterrupt(digitalPinToInterrupt(IRQ_PIN), touchISR, CHANGE);
+}
+
+void setup() {
+  pinMode(IRQ_PIN,INPUT);
+  // Modbus setup
+  pinMode(CTRL_PIN, OUTPUT);
+  Serial.begin(BAUDRATE);
+  node1.begin(SLAVE1_ID, Serial);
+  node1.preTransmission(preTransmission);
+  node1.postTransmission(postTransmission);
+  //node2.begin(SLAVE2_ID, Serial);
+  //node2.preTransmission(preTransmission);
+  //node2.postTransmission(postTransmission);
+  // Setup the TFT display
+  attachInterrupt(digitalPinToInterrupt(IRQ_PIN), touchISR, CHANGE);
+  tft.init();
+  tft.setRotation(1);
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextColor(TFT_WHITE);
+  tft.setFreeFont(FSS9);
+  tft.drawCentreString("Monitoreo de Presion Diferencial",160,3,1);
+  tft.drawLine(10,20,310,20,TFT_WHITE);
+  /*uint16_t calData[5];
+  tft.calibrateTouch(calData,TFT_BLUE,TFT_CYAN,15);*/
+  btnPrev.initButtonUL(&tft, 5, 195, 70, 40,TFT_WHITE, TFT_BLACK,TFT_WHITE, "<<",1);
+  btnPrev.drawButton();
+  btnNext.initButtonUL(&tft, 245, 195, 70, 40,TFT_WHITE, TFT_BLACK,TFT_WHITE, ">>",1);
+  btnNext.drawButton();
+}
+
+void loop() {
+  currTm = millis();
+  if (abs(currTm - lstTm) >= smplTm){
+    screen1(node1, "Maquina 1");
+    lstTm = currTm;
+  }
+  
 }
