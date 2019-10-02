@@ -24,6 +24,8 @@ bool state = true;
 long lstTm = 0;
 long currTm = 0;
 
+bool next = 0;
+
 union unFlt {
 	float flt;
 	int16_t int16[2];
@@ -135,6 +137,7 @@ void IRAM_ATTR touchISR(){
 	}
 	if (btnNext.justReleased()) {
 		btnNext.drawButton();  // draw normal
+		next = 1;
 	}
 	if (btnNext.justPressed()) {
 		btnNext.drawButton(true);  // draw invert!
@@ -176,5 +179,10 @@ void loop() {
 		screen1(node1, "Maquina 1");
 		lstTm = currTm;
 	}
-	
+	if (next) {
+		tft.fillScreen(TFT_BLACK);
+		tft.setTextColor(TFT_WHITE);
+		tft.setFreeFont(FSS9);
+		tft.drawCentreString("Siguiente Pantalla",160,3,1);
+	}
 }
