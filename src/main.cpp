@@ -3,6 +3,7 @@
 #include <SPI.h>
 #include <ModbusMaster.h>
 #include "Free_Fonts.h"
+//#include <TaskScheduler.h>
 
 #define SLAVE1_ID 0x01
 #define SLAVE2_ID 0x02
@@ -26,6 +27,7 @@ long currTm = 0;
 
 bool next = 0;
 
+// ---------------------- RS-485 Methods ----------------------
 union unFlt {
 	float flt;
 	int16_t int16[2];
@@ -40,6 +42,7 @@ void postTransmission()
 	digitalWrite(CTRL_PIN, 0);
 }
 
+// -------------------- MPVX5004DP Methods --------------------
 float kPa2inh2o(float valkPa)
 {
 	return valkPa * 4.01865;
@@ -50,6 +53,7 @@ float inh2o2kPa(float valkin2o)
 	return valkin2o / 4.01865;
 }
 
+// --------------------- Display Methods ----------------------
 void showSensVal(float valkPa, char *title, int32_t poX, int32_t poY)
 {
 	tft.drawRect(poX, poY + 7, 148, 72, TFT_WHITE);
@@ -170,6 +174,7 @@ void IRAM_ATTR touchISR()
 	{
 		btnNext.drawButton(true); // draw invert!
 	}
+	digitalWrite(LED_BUILTIN,!digitalRead(IRQ_PIN));
 	attachInterrupt(digitalPinToInterrupt(IRQ_PIN), touchISR, CHANGE);
 }
 
@@ -178,6 +183,7 @@ void setup()
 	pinMode(IRQ_PIN, INPUT);
 	// Modbus setup
 	pinMode(CTRL_PIN, OUTPUT);
+	pinMode(LED_BUILTIN,OUTPUT);
 	Serial.begin(BAUDRATE);
 	node1.begin(SLAVE1_ID, Serial);
 	node1.preTransmission(preTransmission);
