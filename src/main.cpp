@@ -1,7 +1,8 @@
 #include <Arduino.h>
 #include <TFT_eSPI.h>
 #include <SPI.h>
-#include <ModbusMaster.h>
+//#include <ModbusMaster.h>
+#include "sensorNode.h"
 #include "Free_Fonts.h"
 
 #define SLAVE1_ID 0x01
@@ -14,9 +15,10 @@
 
 //#define DEBUG
 
-TFT_eSPI tft = TFT_eSPI();
-ModbusMaster node1;
-ModbusMaster node2;
+static TFT_eSPI tft = TFT_eSPI();
+static sensorNode node1;
+static float sensValkPa[] = {0.0, 0.0};
+sensorNode node2;
 TFT_eSPI_Button btnPrev;
 TFT_eSPI_Button btnNext;
 
@@ -27,29 +29,15 @@ long currTm = 0;
 bool next = 0;
 
 // ---------------------- RS-485 Methods ----------------------
-union unFlt {
-	float flt;
-	int16_t int16[2];
-} ufl;
-void preTransmission()
+
+void preTransmission1()
 {
 	digitalWrite(CTRL_PIN, 1);
 }
 
-void postTransmission()
+void postTransmission1()
 {
 	digitalWrite(CTRL_PIN, 0);
-}
-
-// -------------------- MPVX5004DP Methods --------------------
-float kPa2inh2o(float valkPa)
-{
-	return valkPa * 4.01865;
-}
-
-float inh2o2kPa(float valkin2o)
-{
-	return valkin2o / 4.01865;
 }
 
 // --------------------- Display Methods ----------------------
@@ -93,38 +81,15 @@ void showSensVal(float valkPa, char *title, int32_t poX, int32_t poY)
 	}
 }
 
-float getSensValKpa(ModbusMaster node, uint8_t sensNum)
+void screen1(sensorNode node, char *title)
 {
-	uint16_t reg = 0;
-	if (sensNum == 0)
-	{
-		reg = 0x00DA;
-	}
-	else if (sensNum == 1)
-	{
-		reg = 0x00DC;
-	}
-	uint16_t result = node.readInputRegisters(reg, 2);
-	if (result == node.ku8MBSuccess)
-	{
-		ufl.int16[0] = node.getResponseBuffer(0);
-		ufl.int16[1] = node.getResponseBuffer(1);
-		float valkPa = ufl.flt; // Value in kPa
-		return valkPa;
-	}
-	else
-	{
-		return NULL;
-	}
-}
-
-void screen1(ModbusMaster node, char *title)
-{
+	float sensor[] = {0, 0};
+	node.getSensValKpa(sensor);
 	tft.setFreeFont(FSS9);
 	tft.setTextColor(TFT_WHITE, TFT_BLACK);
 	tft.drawCentreString(title, 160, 205, 1);
-	showSensVal(getSensValKpa(node, 0), " Sensor 1  ", 96, 25);
-	showSensVal(getSensValKpa(node, 1), " Sensor 2  ", 96, 110);
+	showSensVal(sensor[0], " Sensor 1  ", 96, 25);
+	showSensVal(sensor[1], " Sensor 2  ", 96, 110);
 	/*showSensVal(getSensValKpa(node,0)," Sensor 1  ", 6, 25);
 	showSensVal(getSensValKpa(node,1)," Sensor 2  ", 166, 25);
 	showSensVal(getSensValKpa(node,0)," Sensor 3  ", 6, 110);
@@ -173,25 +138,32 @@ void IRAM_ATTR touchISR()
 	{
 		btnNext.drawButton(true); // draw invert!
 	}
-	digitalWrite(LED_BUILTIN,!digitalRead(IRQ_PIN));
+	digitalWrite(LED_BUILTIN, !digitalRead(IRQ_PIN));
 	attachInterrupt(digitalPinToInterrupt(IRQ_PIN), touchISR, CHANGE);
 }
 
-void setup()
+void TaskRS485(void *pvParameters) // This is a task.
 {
-	pinMode(IRQ_PIN, INPUT);
-	// Modbus setup
+	(void)pvParameters;
+
+	pinMode(LED_BUILTIN, OUTPUT);
 	pinMode(CTRL_PIN, OUTPUT);
-	pinMode(LED_BUILTIN,OUTPUT);
 	Serial.begin(BAUDRATE);
-	node1.begin(SLAVE1_ID, Serial);
-	node1.preTransmission(preTransmission);
-	node1.postTransmission(postTransmission);
-	//node2.begin(SLAVE2_ID, Serial);
-	//node2.preTransmission(preTransmission);
-	//node2.postTransmission(postTransmission);
-	// Setup the TFT display
-	attachInterrupt(digitalPinToInterrupt(IRQ_PIN), touchISR, CHANGE);
+	node1.begin(SLAVE1_ID, Serial, 2);
+	node1.preTransmission(preTransmission1);
+	node1.postTransmission(postTransmission1);
+
+	for (;;)
+	{
+		node1.getSensValKpa
+			vTaskDelay(500);
+	}
+}
+
+void TaskTFT(void *pvParameters) // This is a task.
+{
+	(void)pvParameters;
+
 	tft.init();
 	tft.setRotation(1);
 	tft.fillScreen(TFT_BLACK);
@@ -199,17 +171,33 @@ void setup()
 	tft.setFreeFont(FSS9);
 	tft.drawCentreString("Monitoreo de Presion Diferencial", 160, 3, 1);
 	tft.drawLine(10, 20, 310, 20, TFT_WHITE);
-	/*uint16_t calData[5];
-	tft.calibrateTouch(calData,TFT_BLUE,TFT_CYAN,15);*/
+
+	/*pinMode(IRQ_PIN, INPUT);
+	attachInterrupt(digitalPinToInterrupt(IRQ_PIN), touchISR, CHANGE);
 	btnPrev.initButtonUL(&tft, 5, 195, 70, 40, TFT_WHITE, TFT_BLACK, TFT_WHITE, "<<", 1);
 	btnPrev.drawButton();
 	btnNext.initButtonUL(&tft, 245, 195, 70, 40, TFT_WHITE, TFT_BLACK, TFT_WHITE, ">>", 1);
 	btnNext.drawButton();
+	//uint16_t calData[5];
+	//tft.calibrateTouch(calData,TFT_BLUE,TFT_CYAN,15);*/
+
+	for (;;)
+	{
+		//screen1(node1, "Maquina 1");
+		vTaskDelay(500);
+	}
+}
+
+void setup()
+{
+
+	xTaskCreatePinnedToCore(TaskRS485, "Task RS-485", 1024, NULL, 2, NULL, 0);
+	xTaskCreatePinnedToCore(TaskTFT, "Task TFT", 1024, NULL, 2, NULL, 0);
 }
 
 void loop()
 {
-	currTm = millis();
+	/*currTm = millis();
 	if (abs(currTm - lstTm) >= smplTm)
 	{
 		screen1(node1, "Maquina 1");
@@ -221,5 +209,6 @@ void loop()
 		tft.setTextColor(TFT_WHITE);
 		tft.setFreeFont(FSS9);
 		tft.drawCentreString("Siguiente Pantalla 2", 160, 3, 1);
-	}
+		next = 0;
+	}*/
 }
