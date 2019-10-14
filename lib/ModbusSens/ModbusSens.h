@@ -1,5 +1,5 @@
-#ifndef sensNode_h
-#define sensNode_h
+#ifndef modbusSens_h
+#define modbusSens_h
 
 #include "Arduino.h"
 #include <ModbusMaster.h>
@@ -12,7 +12,7 @@ union unionFlt {
 float kPa2inh2o(float valkPa);
 float inh2o2kPa(float valkin2o);
 
-class sensorNode : public ModbusMaster
+class ModbusSens : public ModbusMaster
 {
 private:
     uint8_t _numSens = 1;

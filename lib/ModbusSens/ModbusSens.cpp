@@ -1,4 +1,4 @@
-#include "sensorNode.h"
+#include "ModbusSens.h"
 
 /**
  * @brief Initialize class object.
@@ -10,7 +10,7 @@
  * @param serial reference to serial port object (Serial, Serial1, ... Serial3)
  * @param numSens number of differential pressure sensor in the node (1-6)
  */
-void sensorNode::begin(uint8_t slaveId, Stream &serial, uint8_t numSens = 1)
+void ModbusSens::begin(uint8_t slaveId, Stream &serial, uint8_t numSens = 1)
 {
     _numSens = numSens;
     Stream *_serial;
@@ -18,7 +18,7 @@ void sensorNode::begin(uint8_t slaveId, Stream &serial, uint8_t numSens = 1)
     ModbusMaster::begin(slaveId, *_serial);
 }
 
-uint8_t sensorNode::getNumSens()
+uint8_t ModbusSens::getNumSens()
 {
     return _numSens;
 }
@@ -30,7 +30,7 @@ uint8_t sensorNode::getNumSens()
  * @return true 
  * @return false 
  */
-bool sensorNode::getSensValKpa(float *valkPa)
+bool ModbusSens::getSensValKpa(float *valkPa)
 {
     bool ret = true;
     uint16_t reg = 0x00DA;

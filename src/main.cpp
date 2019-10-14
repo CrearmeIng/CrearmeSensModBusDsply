@@ -2,7 +2,7 @@
 #include <TFT_eSPI.h>
 #include <SPI.h>
 //#include <ModbusMaster.h>
-#include "sensorNode.h"
+#include <ModbusSens.h>
 #include "Free_Fonts.h"
 
 #define SLAVE1_ID 0x01
@@ -16,9 +16,9 @@
 //#define DEBUG
 
 static TFT_eSPI tft = TFT_eSPI();
-static sensorNode node1;
+static ModbusSens node1;
 static float sensValkPa[] = {0.0, 0.0};
-sensorNode node2;
+ModbusSens node2;
 TFT_eSPI_Button btnPrev;
 TFT_eSPI_Button btnNext;
 
@@ -81,15 +81,13 @@ void showSensVal(float valkPa, char *title, int32_t poX, int32_t poY)
 	}
 }
 
-void screen1(sensorNode node, char *title)
+void screen1(char *title)
 {
-	float sensor[] = {0, 0};
-	node.getSensValKpa(sensor);
 	tft.setFreeFont(FSS9);
 	tft.setTextColor(TFT_WHITE, TFT_BLACK);
 	tft.drawCentreString(title, 160, 205, 1);
-	showSensVal(sensor[0], " Sensor 1  ", 96, 25);
-	showSensVal(sensor[1], " Sensor 2  ", 96, 110);
+	showSensVal(sensValkPa[0], " Sensor 1  ", 96, 25);
+	showSensVal(sensValkPa[1], " Sensor 2  ", 96, 110);
 	/*showSensVal(getSensValKpa(node,0)," Sensor 1  ", 6, 25);
 	showSensVal(getSensValKpa(node,1)," Sensor 2  ", 166, 25);
 	showSensVal(getSensValKpa(node,0)," Sensor 3  ", 6, 110);
@@ -155,8 +153,8 @@ void TaskRS485(void *pvParameters) // This is a task.
 
 	for (;;)
 	{
-		node1.getSensValKpa
-			vTaskDelay(500);
+		node1.getSensValKpa(sensValkPa);
+		vTaskDelay(100);
 	}
 }
 
@@ -183,8 +181,8 @@ void TaskTFT(void *pvParameters) // This is a task.
 
 	for (;;)
 	{
-		//screen1(node1, "Maquina 1");
-		vTaskDelay(500);
+		screen1("Maquina 1");
+		vTaskDelay(100);
 	}
 }
 
@@ -192,18 +190,12 @@ void setup()
 {
 
 	xTaskCreatePinnedToCore(TaskRS485, "Task RS-485", 1024, NULL, 2, NULL, 0);
-	xTaskCreatePinnedToCore(TaskTFT, "Task TFT", 1024, NULL, 2, NULL, 0);
+	xTaskCreatePinnedToCore(TaskTFT, "Task TFT", 1024, NULL, 2, NULL, 1);
 }
 
 void loop()
 {
-	/*currTm = millis();
-	if (abs(currTm - lstTm) >= smplTm)
-	{
-		screen1(node1, "Maquina 1");
-		lstTm = currTm;
-	}
-	if (next)
+	/*if (next)
 	{
 		tft.fillScreen(TFT_BLACK);
 		tft.setTextColor(TFT_WHITE);
