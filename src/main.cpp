@@ -13,7 +13,14 @@
 
 //#define DEBUG
 
-static float sensValkPa[] = {0.0, 0.0};
+typedef struct rtosStrct
+{
+	float sensValkPa[2];
+};
+
+static rtosStrct rtosStruct;
+
+//static float sensValkPa[] = {0.0, 0.0};
 //TFT_eSPI_Button btnPrev;
 //TFT_eSPI_Button btnNext;
 
@@ -79,7 +86,7 @@ void postTransmission1()
 
 void TaskRS485(void *pvParameters) // This is a task.
 {
-	//(void)pvParameters;
+	(void)pvParameters;
 
 	static ModbusSens node1;
 
@@ -94,21 +101,27 @@ void TaskRS485(void *pvParameters) // This is a task.
 	{
 		if (xSemaphoreTake(xMutex, portMAX_DELAY))
 		{
-			node1.getSensValKpa((float *)pvParameters);
+			float *buff;
+			node1.getSensValKpa(buff);
+			rtosStruct.sensValkPa[0] = *buff;
+			//rtosStruct.sensValkPa[1] = buff[1];
+			//rtosStruct.sensValkPa[0] += 0.001f;
+			//rtosStruct.sensValkPa[1] += 0.002f;
 			xSemaphoreGive(xMutex);
 		}
-		vTaskDelay(100);
+		vTaskDelay(500);
 	}
 }
 
 void TaskTFT(void *pvParameters) // This is a task.
 {
-	//(void)pvParameters;
+	(void)pvParameters;
 
 	static TFTSens tft;
 
 	tft.init();
 	tft.setRotation(1);
+	tft.fillScreen(TFT_BLACK);
 	tft.header("Monitoreo de Presion Diferencial");
 
 	/*pinMode(IRQ_PIN, INPUT);
@@ -120,25 +133,24 @@ void TaskTFT(void *pvParameters) // This is a task.
 	//uint16_t calData[5];
 	//tft.calibrateTouch(calData,TFT_BLUE,TFT_CYAN,15);*/
 
-	float sensValkPa[] = {3.0, 1.5, 2.3, 0.326};
-
 	for (;;)
 	{
-		/*if (xSemaphoreTake(xMutex, portMAX_DELAY))
+		if (xSemaphoreTake(xMutex, portMAX_DELAY))
 		{
-			//sensValkPa = (float *)pvParameters;
+			tft.screenSens(rtosStruct.sensValkPa, 2, "Maquina 1");
 			xSemaphoreGive(xMutex);
-		}*/
-		tft.screenSens(sensValkPa, 4, "Maquina 1");
-		vTaskDelay(200);
+		}
+		vTaskDelay(500);
 	}
 }
 
 void setup()
 {
-	xTaskCreatePinnedToCore(TaskRS485, "Task RS-485", 1024, sensValkPa, 2, NULL, 0);
-	xTaskCreatePinnedToCore(TaskTFT, "Task TFT", 1024, sensValkPa, 2, NULL, 1);
+	xTaskCreatePinnedToCore(TaskRS485, "Task RS-485", 1024, NULL, 2, NULL, 0);
+	xTaskCreatePinnedToCore(TaskTFT, "Task TFT", 1024, NULL, 2, NULL, 1);
 	xMutex = xSemaphoreCreateMutex();
+	rtosStruct.sensValkPa[0] = 0.5f;
+	rtosStruct.sensValkPa[1] = 0.02f;
 }
 
 void loop()

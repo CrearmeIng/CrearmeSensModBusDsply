@@ -8,7 +8,7 @@ void TFTSens::showSensVal(float valkPa, char *title, int32_t poX, int32_t poY)
 	setFreeFont(FSS9);
 	setTextColor(TFT_WHITE, TFT_BLACK);
 	drawCentreString(title, poX + 74, poY, 1);
-	if (valkPa == NULL)
+	/*if (valkPa == NULL)
 	{
 		setTextColor(TFT_RED);
 		setFreeFont(FSS12);
@@ -18,37 +18,36 @@ void TFTSens::showSensVal(float valkPa, char *title, int32_t poX, int32_t poY)
 		delay(50);
 	}
 	else
+	{*/
+	if ((valkPa < 0.0) || (valkPa > inh2o2kPa(2.5)))
 	{
-		if ((valkPa < 0.0) || (valkPa > inh2o2kPa(2.5)))
-		{
-			setTextColor(TFT_RED);
-		}
-		else if (valkPa >= inh2o2kPa(1.5))
-		{
-			setTextColor(TFT_YELLOW);
-		}
-		else
-		{
-			setTextColor(TFT_WHITE);
-		}
-		float valinh2o = kPa2inh2o(valkPa);
-		//setTextColor(TFT_WHITE,TFT_BLACK);
-		setFreeFont(FF0);
-		drawString("in", poX + 10, poY + 28);
-		drawString("h2o", poX + 6, poY + 38);
-		drawString("kPa", poX + 6, poY + 62);
-		setFreeFont(FSS24);
-		fillRect(poX + 27, poY + 18, 114, 55, TFT_BLACK);
-		drawFloat(valinh2o, 2, poX + 27, poY + 18);
-		setFreeFont(FSS9);
-		drawFloat(valkPa, 3, poX + 27, poY + 58);
-		delay(50);
+		setTextColor(TFT_RED);
 	}
+	else if (valkPa >= inh2o2kPa(1.5))
+	{
+		setTextColor(TFT_YELLOW);
+	}
+	else
+	{
+		setTextColor(TFT_WHITE);
+	}
+	float valinh2o = kPa2inh2o(valkPa);
+	//setTextColor(TFT_WHITE,TFT_BLACK);
+	setFreeFont(FF0);
+	drawString("in", poX + 10, poY + 28);
+	drawString("h2o", poX + 6, poY + 38);
+	drawString("kPa", poX + 6, poY + 62);
+	setFreeFont(FSS24);
+	fillRect(poX + 27, poY + 18, 114, 55, TFT_BLACK);
+	drawFloat(valinh2o, 2, poX + 27, poY + 18);
+	setFreeFont(FSS9);
+	drawFloat(valkPa, 3, poX + 27, poY + 58);
+	//delay(50);
+	//}
 }
 
 void TFTSens::header(char *title)
 {
-	fillScreen(TFT_BLACK);
 	setTextColor(TFT_WHITE);
 	setFreeFont(FSS9);
 	drawCentreString(title, 160, 3, 1);
